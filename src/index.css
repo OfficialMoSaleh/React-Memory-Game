@@ -1,0 +1,27 @@
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap');
+
+body {
+  font-family: 'Cairo', sans-serif;
+  margin: 0;
+  font-size: 1rem;
+  text-align: center;
+  color: #fff;
+  height: 100vh;
+  background: linear-gradient(to top right, #05090e, #29323b, #001a33, #162535, #063e77);
+  background-size: 600% 600%;
+  animation: gradient 10s ease infinite;
+}
+
+@keyframes gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
