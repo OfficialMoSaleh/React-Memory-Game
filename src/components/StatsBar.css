@@ -255,6 +255,96 @@
 .accuracy-chip { color: #c084fc; border-color: rgba(168, 85, 247, 0.2); }
 .trophy-chip { color: #facc15; border-color: rgba(234, 179, 8, 0.2); }
 
+/* Mode Selector */
+.mode-pill-group {
+  display: inline-flex;
+  background: rgba(13, 17, 30, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 2px;
+  gap: 2px;
+}
+
+.mode-btn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  font-family: inherit;
+  font-size: 0.74rem;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.mode-btn:hover:not(.active) {
+  color: #f1f5f9;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.mode-btn.active {
+  background: linear-gradient(135deg, #8b5cf6, #d946ef);
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(217, 70, 239, 0.35);
+}
+
+/* Urgent Countdown */
+.timer-chip.timer-urgent {
+  color: #ef4444 !important;
+  border-color: rgba(239, 68, 68, 0.6) !important;
+  background: rgba(239, 68, 68, 0.15) !important;
+  animation: urgentPulse 0.8s infinite alternate ease-in-out;
+}
+
+@keyframes urgentPulse {
+  from { transform: scale(1); }
+  to { transform: scale(1.06); }
+}
+
+.bonus-time-badge {
+  background: #10b981;
+  color: #ffffff;
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 1px 5px;
+  border-radius: 6px;
+  margin-left: 4px;
+  animation: popFloat 0.8s ease-out forwards;
+}
+
+@keyframes popFloat {
+  0% { opacity: 0; transform: translateY(4px); }
+  30% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-8px); }
+}
+
+/* Combo Chip */
+.combo-chip {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(239, 68, 68, 0.2)) !important;
+  border-color: rgba(245, 158, 11, 0.5) !important;
+  color: #fbbf24 !important;
+  animation: comboPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.combo-text {
+  color: #f59e0b !important;
+  font-weight: 800;
+}
+
+.combo-zap-icon {
+  color: #f59e0b;
+}
+
+@keyframes comboPop {
+  0% { transform: scale(0.85); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
 @media (max-width: 768px) {
   .dashboard-top {
     justify-content: center;

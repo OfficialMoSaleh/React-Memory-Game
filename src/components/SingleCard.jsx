@@ -1,7 +1,7 @@
 import './SingleCard.css';
 import { Sparkles } from 'lucide-react';
 
-const SingleCard = ({ card, handleChoice, flipped, disabled }) => {
+const SingleCard = ({ card, handleChoice, flipped, disabled, isShaking }) => {
   const handleClick = () => {
     if (!disabled && !flipped && !card.matched) {
       handleChoice(card);
@@ -17,7 +17,7 @@ const SingleCard = ({ card, handleChoice, flipped, disabled }) => {
 
   return (
     <div
-      className={`card-container ${flipped ? 'flipped' : ''} ${card.matched ? 'matched' : ''}`}
+      className={`card-container ${flipped ? 'flipped' : ''} ${card.matched ? 'matched' : ''} ${isShaking ? 'shake' : ''}`}
       onClick={handleClick}
       onKeyDown={handleKeyDown}
       tabIndex={card.matched ? -1 : 0}

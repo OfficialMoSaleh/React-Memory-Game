@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Timer, Trophy, Volume2, VolumeX, RotateCcw, Eye, Flame, Languages, User, Check, Edit2 } from 'lucide-react';
+import { Timer, Trophy, Volume2, VolumeX, RotateCcw, Eye, Flame, Languages, User, Check, Edit2, Hourglass, Zap } from 'lucide-react';
 import './StatsBar.css';
 
 const StatsBar = ({
@@ -9,6 +9,10 @@ const StatsBar = ({
   totalPairs,
   difficulty,
   setDifficulty,
+  gameMode,
+  setGameMode,
+  streak,
+  bonusTimeAnim,
   muted,
   toggleSound,
   onRestart,
@@ -42,12 +46,31 @@ const StatsBar = ({
 
   return (
     <header className="stats-dashboard">
-      {/* Row 1: Brand (No Icon), Player Name, Difficulty, Language & Controls */}
+      {/* Row 1: Brand, Mode Toggle, Player, Difficulty, Lang, Audio & Restart */}
       <div className="dashboard-top">
-        {/* Clean Logo without the side icon */}
+        {/* Clean Logo */}
         <div className="brand-clean">
           <h1 className="game-title">Mind Match</h1>
           <span className="game-subtitle">{t.subtitle}</span>
+        </div>
+
+        {/* Game Mode Pill (Classic vs Time Attack) */}
+        <div className="mode-pill-group" role="tablist">
+          <button
+            className={`mode-btn ${gameMode === 'classic' ? 'active' : ''}`}
+            onClick={() => setGameMode('classic')}
+            title="وضع اللعب العادي / Classic Mode"
+          >
+            {t.classicMode}
+          </button>
+          <button
+            className={`mode-btn ${gameMode === 'timeAttack' ? 'active' : ''}`}
+            onClick={() => setGameMode('timeAttack')}
+            title="تحدي الوقت التنازلي / Time Attack Mode"
+          >
+            <Hourglass size={12} />
+            <span>{t.timeAttackMode}</span>
+          </button>
         </div>
 
         {/* Player Name Tag */}
@@ -105,7 +128,7 @@ const StatsBar = ({
           </button>
         </div>
 
-        {/* Actions & Language Switcher */}
+        {/* Actions & Controls */}
         <div className="action-buttons">
           {/* Language Toggle */}
           <button
@@ -152,11 +175,24 @@ const StatsBar = ({
 
       {/* Row 2: Ultra-Compact Metrics Bar */}
       <div className="metrics-compact-row">
-        <div className="metric-chip timer-chip">
-          <Timer size={15} />
+        {/* Timer / Countdown */}
+        <div className={`metric-chip timer-chip ${gameMode === 'timeAttack' && time <= 10 ? 'timer-urgent' : ''}`}>
+          {gameMode === 'timeAttack' ? <Hourglass size={15} /> : <Timer size={15} />}
           <span className="chip-label">{t.time}:</span>
           <span className="chip-val font-mono">{formatTime(time)}</span>
+          {bonusTimeAnim && (
+            <span className="bonus-time-badge">{t.timeBonus}</span>
+          )}
         </div>
+
+        {/* Combo / Streak Chip (Visible when streak >= 2) */}
+        {streak >= 2 && (
+          <div className="metric-chip combo-chip">
+            <Zap size={15} className="combo-zap-icon" />
+            <span className="chip-label">{t.streak}:</span>
+            <span className="chip-val combo-text">{streak}x COMBO!</span>
+          </div>
+        )}
 
         <div className="metric-chip moves-chip">
           <Flame size={15} />

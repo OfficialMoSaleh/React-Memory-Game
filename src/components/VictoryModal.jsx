@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import confetti from 'canvas-confetti';
-import { Trophy, Star, RotateCcw, Timer, Flame, CheckCircle2, Award } from 'lucide-react';
+import { Trophy, Star, RotateCcw, Timer, Flame, CheckCircle2, Award, Hourglass, Zap } from 'lucide-react';
 import './VictoryModal.css';
 
 const VictoryModal = ({
@@ -9,12 +9,16 @@ const VictoryModal = ({
   wrongTries,
   difficulty,
   isNewRecord,
+  isGameOver,
+  maxStreak,
   onPlayAgain,
   onChangeDifficulty,
   playerName,
   t,
 }) => {
   useEffect(() => {
+    if (isGameOver) return; // Don't fire confetti if time ran out
+
     const end = Date.now() + 2 * 1000;
     const colors = ['#06b6d4', '#8b5cf6', '#10b981', '#facc15', '#f43f5e'];
 
@@ -38,7 +42,7 @@ const VictoryModal = ({
         requestAnimationFrame(frame);
       }
     })();
-  }, []);
+  }, [isGameOver]);
 
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
@@ -47,6 +51,7 @@ const VictoryModal = ({
   };
 
   const getStars = () => {
+    if (isGameOver) return 0;
     let thresholds = {
       easy: { three: 10, two: 15 },
       medium: { three: 14, two: 22 },
@@ -69,14 +74,18 @@ const VictoryModal = ({
 
   return (
     <div className="modal-backdrop">
-      <div className="victory-card">
-        <div className="victory-glow"></div>
+      <div className={`victory-card ${isGameOver ? 'game-over-card' : ''}`}>
+        <div className={`victory-glow ${isGameOver ? 'game-over-glow' : ''}`}></div>
 
         <div className="trophy-wrapper">
-          <div className="trophy-circle">
-            <Trophy size={36} className="trophy-icon" />
+          <div className={`trophy-circle ${isGameOver ? 'game-over-circle' : ''}`}>
+            {isGameOver ? (
+              <Hourglass size={34} className="trophy-icon" />
+            ) : (
+              <Trophy size={36} className="trophy-icon" />
+            )}
           </div>
-          {isNewRecord && (
+          {!isGameOver && isNewRecord && (
             <div className="new-record-badge">
               <Award size={13} /> {t.newRecord}
             </div>
@@ -84,24 +93,32 @@ const VictoryModal = ({
         </div>
 
         <h2 className="victory-title">
-          {t.victoryTitle} <span className="player-highlight">{playerName}</span>! 🚀
+          {isGameOver ? (
+            <span>{t.timeUpTitle}</span>
+          ) : (
+            <>
+              {t.victoryTitle} <span className="player-highlight">{playerName}</span>!
+            </>
+          )}
         </h2>
-        <p className="victory-sub">{t.victorySub}</p>
+        <p className="victory-sub">{isGameOver ? t.timeUpSub : t.victorySub}</p>
 
-        {/* Stars */}
-        <div className="stars-container">
-          {[1, 2, 3].map((starIndex) => (
-            <div
-              key={starIndex}
-              className={`star-slot ${starIndex <= stars ? 'star-active' : ''}`}
-            >
-              <Star
-                size={28}
-                className={`star-icon ${starIndex <= stars ? 'fill-star' : ''}`}
-              />
-            </div>
-          ))}
-        </div>
+        {/* Stars (Only for victory) */}
+        {!isGameOver && (
+          <div className="stars-container">
+            {[1, 2, 3].map((starIndex) => (
+              <div
+                key={starIndex}
+                className={`star-slot ${starIndex <= stars ? 'star-active' : ''}`}
+              >
+                <Star
+                  size={28}
+                  className={`star-icon ${starIndex <= stars ? 'fill-star' : ''}`}
+                />
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Stats Summary */}
         <div className="victory-stats-box">
@@ -136,10 +153,12 @@ const VictoryModal = ({
 
             <div className="v-stat-item">
               <div className="v-icon-title">
-                <Award size={14} />
-                <span>{t.level}</span>
+                {maxStreak > 1 ? <Zap size={14} /> : <Award size={14} />}
+                <span>{maxStreak > 1 ? t.maxStreakLabel : t.level}</span>
               </div>
-              <span className="v-val">{getLevelLabel()}</span>
+              <span className="v-val">
+                {maxStreak > 1 ? `${maxStreak}x` : getLevelLabel()}
+              </span>
             </div>
           </div>
         </div>
@@ -148,7 +167,7 @@ const VictoryModal = ({
         <div className="victory-actions">
           <button className="v-btn primary-v-btn" onClick={onPlayAgain}>
             <RotateCcw size={16} />
-            <span>{t.playAgain}</span>
+            <span>{isGameOver ? t.tryAgain : t.playAgain}</span>
           </button>
           <button className="v-btn secondary-v-btn" onClick={onChangeDifficulty}>
             <span>{t.changeDiff}</span>

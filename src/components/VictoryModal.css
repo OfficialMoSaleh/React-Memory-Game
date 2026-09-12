@@ -58,6 +58,24 @@
               inset 0 2px 4px rgba(255, 255, 255, 0.4);
 }
 
+/* Game Over Styling */
+.game-over-card {
+  border-color: rgba(239, 68, 68, 0.4);
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.8),
+              0 0 40px rgba(239, 68, 68, 0.2),
+              inset 0 1px 1px rgba(255, 255, 255, 0.2);
+}
+
+.game-over-glow {
+  background: radial-gradient(ellipse, rgba(239, 68, 68, 0.4) 0%, transparent 70%);
+}
+
+.game-over-circle {
+  background: linear-gradient(135deg, #ef4444, #b91c1c);
+  box-shadow: 0 0 25px rgba(239, 68, 68, 0.6),
+              inset 0 2px 4px rgba(255, 255, 255, 0.4);
+}
+
 .new-record-badge {
   position: absolute;
   bottom: -6px;

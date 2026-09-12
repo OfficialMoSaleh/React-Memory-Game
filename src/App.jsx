@@ -21,9 +21,9 @@ const ALL_CARDS = [
 ];
 
 const DIFFICULTY_CONFIG = {
-  easy: { pairs: 6, cols: 4, rows: 3 },
-  medium: { pairs: 8, cols: 4, rows: 4 },
-  hard: { pairs: 10, cols: 5, rows: 4 },
+  easy: { pairs: 6, cols: 4, rows: 3, timeLimit: 45 },
+  medium: { pairs: 8, cols: 4, rows: 4, timeLimit: 60 },
+  hard: { pairs: 10, cols: 5, rows: 4, timeLimit: 75 },
 };
 
 const CURRENT_GAME_KEY = 'mind_match_current_game';
@@ -69,20 +69,34 @@ function App() {
   // Restore current game state from localStorage on page refresh
   const savedGame = loadSavedGame();
 
+  const [gameMode, setGameMode] = useState(() => {
+    return savedGame?.gameMode || localStorage.getItem('mind_match_mode') || 'classic';
+  });
+
   const [difficulty, setDifficulty] = useState(() => savedGame?.difficulty || 'medium');
   const [cards, setCards] = useState(() => savedGame?.cards || []);
   const [firstChoice, setFirstChoice] = useState(null);
   const [secondChoice, setSecondChoice] = useState(null);
   const [disabled, setDisabled] = useState(false);
+  const [shakingCards, setShakingCards] = useState([]);
 
   // Metrics preserved across reloads
   const [moves, setMoves] = useState(() => savedGame?.moves || 0);
   const [wrongTries, setWrongTries] = useState(() => savedGame?.wrongTries || 0);
   const [matches, setMatches] = useState(() => savedGame?.matches || 0);
-  const [time, setTime] = useState(() => savedGame?.time || 0);
+  const [time, setTime] = useState(() => {
+    if (savedGame?.time !== undefined) return savedGame.time;
+    return gameMode === 'timeAttack' ? DIFFICULTY_CONFIG[difficulty].timeLimit : 0;
+  });
   const [gameStarted, setGameStarted] = useState(() => savedGame?.gameStarted || false);
   const [gameWon, setGameWon] = useState(() => savedGame?.gameWon || false);
+  const [gameOver, setGameOver] = useState(() => savedGame?.gameOver || false);
   const [isNewRecord, setIsNewRecord] = useState(false);
+
+  // Combo / Streak system
+  const [streak, setStreak] = useState(() => savedGame?.streak || 0);
+  const [maxStreak, setMaxStreak] = useState(() => savedGame?.maxStreak || 0);
+  const [bonusTimeAnim, setBonusTimeAnim] = useState(false);
 
   // Hint / Peek
   const [peekUsed, setPeekUsed] = useState(() => savedGame?.peekUsed || false);
@@ -127,6 +141,11 @@ function App() {
     localStorage.setItem('mind_match_username', name);
   };
 
+  // Sync game mode
+  useEffect(() => {
+    localStorage.setItem('mind_match_mode', gameMode);
+  }, [gameMode]);
+
   // Sync sound
   useEffect(() => {
     sound.setMuted(muted);
@@ -138,8 +157,8 @@ function App() {
   };
 
   // Setup / Reset Game
-  const setupGame = (diff = difficulty) => {
-    const { pairs } = DIFFICULTY_CONFIG[diff];
+  const setupGame = (diff = difficulty, mode = gameMode) => {
+    const { pairs, timeLimit } = DIFFICULTY_CONFIG[diff];
     const selectedCards = ALL_CARDS.slice(0, pairs);
 
     const deck = selectedCards.flatMap((card) => [
@@ -153,26 +172,35 @@ function App() {
     setFirstChoice(null);
     setSecondChoice(null);
     setDisabled(false);
+    setShakingCards([]);
     setMoves(0);
     setWrongTries(0);
     setMatches(0);
-    setTime(0);
+    setTime(mode === 'timeAttack' ? timeLimit : 0);
     setGameStarted(false);
     setGameWon(false);
+    setGameOver(false);
     setIsNewRecord(false);
+    setStreak(0);
+    setMaxStreak(0);
+    setBonusTimeAnim(false);
     setPeekUsed(false);
     setIsPeeking(false);
 
     // Save fresh state to localStorage
     const freshState = {
       difficulty: diff,
+      gameMode: mode,
       cards: shuffledDeck,
       moves: 0,
       wrongTries: 0,
       matches: 0,
-      time: 0,
+      time: mode === 'timeAttack' ? timeLimit : 0,
       gameStarted: false,
       gameWon: false,
+      gameOver: false,
+      streak: 0,
+      maxStreak: 0,
       peekUsed: false,
     };
     localStorage.setItem(CURRENT_GAME_KEY, JSON.stringify(freshState));
@@ -180,7 +208,7 @@ function App() {
 
   // Check if current game is in progress
   const isGameInProgress = () => {
-    return (moves > 0 || time > 0 || matches > 0) && !gameWon;
+    return (moves > 0 || matches > 0) && !gameWon && !gameOver;
   };
 
   // Trigger Restart with confirmation if game in progress
@@ -191,12 +219,12 @@ function App() {
         title: t.confirmRestartTitle,
         message: t.confirmMessage,
         onConfirm: () => {
-          setupGame(difficulty);
+          setupGame(difficulty, gameMode);
           setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
         },
       });
     } else {
-      setupGame(difficulty);
+      setupGame(difficulty, gameMode);
     }
   };
 
@@ -210,20 +238,40 @@ function App() {
         message: t.confirmMessage,
         onConfirm: () => {
           setDifficulty(newDiff);
-          setupGame(newDiff);
+          setupGame(newDiff, gameMode);
           setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
         },
       });
     } else {
       setDifficulty(newDiff);
-      setupGame(newDiff);
+      setupGame(newDiff, gameMode);
+    }
+  };
+
+  // Trigger Game Mode Change with confirmation if game in progress
+  const handleGameModeChangeRequest = (newMode) => {
+    if (newMode === gameMode) return;
+    if (isGameInProgress()) {
+      setConfirmDialog({
+        isOpen: true,
+        title: t.confirmRestartTitle,
+        message: t.confirmMessage,
+        onConfirm: () => {
+          setGameMode(newMode);
+          setupGame(difficulty, newMode);
+          setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
+        },
+      });
+    } else {
+      setGameMode(newMode);
+      setupGame(difficulty, newMode);
     }
   };
 
   // If no saved game in localStorage, create initial deck
   useEffect(() => {
     if (!savedGame || !savedGame.cards || savedGame.cards.length === 0) {
-      setupGame(difficulty);
+      setupGame(difficulty, gameMode);
     }
   }, []);
 
@@ -232,6 +280,7 @@ function App() {
     if (cards.length > 0) {
       const stateToSave = {
         difficulty,
+        gameMode,
         cards,
         moves,
         wrongTries,
@@ -239,26 +288,47 @@ function App() {
         time,
         gameStarted,
         gameWon,
+        gameOver,
+        streak,
+        maxStreak,
         peekUsed,
       };
       localStorage.setItem(CURRENT_GAME_KEY, JSON.stringify(stateToSave));
     }
-  }, [cards, moves, wrongTries, matches, time, difficulty, gameStarted, gameWon, peekUsed]);
+  }, [cards, moves, wrongTries, matches, time, difficulty, gameMode, gameStarted, gameWon, gameOver, streak, maxStreak, peekUsed]);
 
-  // Timer
+  // Timer / Countdown logic
   useEffect(() => {
     let interval = null;
-    if (gameStarted && !gameWon && !isPeeking) {
+    if (gameStarted && !gameWon && !gameOver && !isPeeking) {
       interval = setInterval(() => {
-        setTime((prev) => prev + 1);
+        if (gameMode === 'timeAttack') {
+          setTime((prev) => {
+            if (prev <= 1) {
+              clearInterval(interval);
+              handleGameOver();
+              return 0;
+            }
+            return prev - 1;
+          });
+        } else {
+          setTime((prev) => prev + 1);
+        }
       }, 1000);
     }
     return () => clearInterval(interval);
-  }, [gameStarted, gameWon, isPeeking]);
+  }, [gameStarted, gameWon, gameOver, isPeeking, gameMode]);
+
+  // Handle Game Over (Time's Up)
+  const handleGameOver = () => {
+    setGameOver(true);
+    setDisabled(true);
+    sound.playGameOver();
+  };
 
   // Handle Card Choice
   const handleChoice = (card) => {
-    if (disabled || isPeeking) return;
+    if (disabled || isPeeking || gameOver) return;
     if (firstChoice && firstChoice.id === card.id) return;
     if (card.matched) return;
 
@@ -282,7 +352,20 @@ function App() {
       setMoves((prev) => prev + 1);
 
       if (firstChoice.src === secondChoice.src) {
-        sound.playMatch();
+        // MATCH!
+        const newStreak = streak + 1;
+        setStreak(newStreak);
+        setMaxStreak((prev) => Math.max(prev, newStreak));
+
+        sound.playMatch(newStreak);
+
+        // In Time Attack mode: give +4s bonus!
+        if (gameMode === 'timeAttack') {
+          setTime((prev) => prev + 4);
+          setBonusTimeAnim(true);
+          setTimeout(() => setBonusTimeAnim(false), 800);
+        }
+
         setCards((prevCards) =>
           prevCards.map((card) =>
             card.src === firstChoice.src ? { ...card, matched: true } : card
@@ -299,9 +382,14 @@ function App() {
           }
         }, 350);
       } else {
+        // MISMATCH! Shake cards!
+        setStreak(0);
         sound.playMismatch();
         setWrongTries((prev) => prev + 1);
+        setShakingCards([firstChoice.id, secondChoice.id]);
+
         setTimeout(() => {
+          setShakingCards([]);
           resetTurn();
         }, 650);
       }
@@ -336,7 +424,7 @@ function App() {
   };
 
   const handlePeek = () => {
-    if (peekUsed || disabled || isPeeking) return;
+    if (peekUsed || disabled || isPeeking || gameOver) return;
     setPeekUsed(true);
     setIsPeeking(true);
     sound.playFlip();
@@ -361,6 +449,10 @@ function App() {
           totalPairs={totalPairs}
           difficulty={difficulty}
           setDifficulty={handleDifficultyChangeRequest}
+          gameMode={gameMode}
+          setGameMode={handleGameModeChangeRequest}
+          streak={streak}
+          bonusTimeAnim={bonusTimeAnim}
           muted={muted}
           toggleSound={toggleSound}
           onRestart={handleRestartRequest}
@@ -394,13 +486,14 @@ function App() {
                 card.id === firstChoice?.id ||
                 card.id === secondChoice?.id
               }
-              disabled={disabled || isPeeking}
+              isShaking={shakingCards.includes(card.id)}
+              disabled={disabled || isPeeking || gameOver}
             />
           ))}
         </div>
       </main>
 
-      {/* Confirmation Modal for Reset or Difficulty Change */}
+      {/* Confirmation Modal for Reset, Difficulty, or Mode Change */}
       <ConfirmModal
         isOpen={confirmDialog.isOpen}
         title={confirmDialog.title}
@@ -411,21 +504,24 @@ function App() {
         onCancel={() => setConfirmDialog((prev) => ({ ...prev, isOpen: false }))}
       />
 
-      {/* Victory Celebration Modal */}
-      {gameWon && (
+      {/* Victory or Game Over Modal */}
+      {(gameWon || gameOver) && (
         <VictoryModal
           time={time}
           moves={moves}
           wrongTries={wrongTries}
           difficulty={difficulty}
           isNewRecord={isNewRecord}
-          onPlayAgain={() => setupGame(difficulty)}
+          isGameOver={gameOver}
+          maxStreak={maxStreak}
+          onPlayAgain={() => setupGame(difficulty, gameMode)}
           onChangeDifficulty={() => {
             setGameWon(false);
+            setGameOver(false);
             const nextDiff =
               difficulty === 'easy' ? 'medium' : difficulty === 'medium' ? 'hard' : 'easy';
             setDifficulty(nextDiff);
-            setupGame(nextDiff);
+            setupGame(nextDiff, gameMode);
           }}
           playerName={playerName}
           t={t}

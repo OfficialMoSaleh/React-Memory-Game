@@ -198,6 +198,24 @@
   100% { transform: scale(1) rotateY(180deg); }
 }
 
+/* Card Shake on mismatch */
+.card-container.shake {
+  animation: cardShake 0.45s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+.card-container.shake .card-front {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.6), inset 0 0 16px rgba(239, 68, 68, 0.25) !important;
+}
+
+@keyframes cardShake {
+  10%, 90% { transform: translateX(-3px) rotate(-1deg); }
+  20%, 80% { transform: translateX(4px) rotate(1.5deg); }
+  30%, 50%, 70% { transform: translateX(-5px) rotate(-2deg); }
+  40%, 60% { transform: translateX(5px) rotate(2deg); }
+}
+
+
 @media (max-width: 600px) {
   .card-container {
     border-radius: 8px;
