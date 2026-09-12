@@ -6,12 +6,15 @@
   aspect-ratio: 1 / 1.15;
   margin: auto;
   perspective: 1000px;
+  -webkit-perspective: 1000px;
   cursor: pointer;
   user-select: none;
   border-radius: 12px;
   transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
   outline: none;
   display: flex;
+  transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
 }
 
 .card-container:hover:not(.matched):not(.flipped) {
@@ -29,6 +32,7 @@
   text-align: center;
   transition: transform 0.45s cubic-bezier(0.4, 0, 0.2, 1);
   transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
   border-radius: 12px;
 }
 
@@ -50,21 +54,35 @@
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
-  overflow: hidden;
+  transform: translate3d(0, 0, 0);
+  -webkit-transform: translate3d(0, 0, 0);
+  transition: opacity 0.2s ease, visibility 0.2s ease;
 }
 
-/* Card Back */
+/* Card Back (Default state) */
 .card-back {
   background: linear-gradient(135deg, rgba(26, 32, 53, 0.95), rgba(13, 17, 30, 0.98));
   border: 1.5px solid rgba(255, 255, 255, 0.12);
   box-shadow: 0 4px 16px -4px rgba(0, 0, 0, 0.6),
               inset 0 1px 1px rgba(255, 255, 255, 0.15);
+  z-index: 2;
+  opacity: 1;
+  visibility: visible;
 }
 
 .card-container:hover:not(.matched):not(.flipped) .card-back {
   border-color: rgba(56, 189, 248, 0.5);
   box-shadow: 0 6px 20px -4px rgba(14, 165, 233, 0.35),
               inset 0 1px 1px rgba(255, 255, 255, 0.25);
+}
+
+/* CRITICAL: Guarantee Card Back is completely hidden when flipped or matched */
+.card-container.flipped .card-back,
+.card-container.matched .card-back {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  z-index: 1 !important;
 }
 
 .card-back-pattern {
@@ -79,6 +97,7 @@
     radial-gradient(rgba(139, 92, 246, 0.1) 1px, transparent 0);
   background-size: 12px 12px;
   background-position: 0 0, 6px 6px;
+  border-radius: 12px;
 }
 
 .card-back-icon {
@@ -91,6 +110,7 @@
   align-items: center;
   justify-content: center;
   backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   box-shadow: 0 0 12px rgba(56, 189, 248, 0.25);
 }
 
@@ -103,14 +123,26 @@
   line-height: 1;
 }
 
-/* Card Front */
+/* Card Front (Revealed Face) */
 .card-front {
-  transform: rotateY(180deg);
+  transform: rotateY(180deg) translate3d(0, 0, 0);
+  -webkit-transform: rotateY(180deg) translate3d(0, 0, 0);
   background: linear-gradient(145deg, rgba(23, 28, 48, 0.95), rgba(15, 20, 35, 0.98));
   border: 1.5px solid rgba(56, 189, 248, 0.4);
   box-shadow: 0 4px 20px -4px rgba(0, 0, 0, 0.7),
               inset 0 0 16px rgba(56, 189, 248, 0.08);
   padding: 10%;
+  z-index: 1;
+  opacity: 0;
+  visibility: hidden;
+}
+
+/* When flipped, Card Front is visible on top */
+.card-container.flipped .card-front,
+.card-container.matched .card-front {
+  opacity: 1 !important;
+  visibility: visible !important;
+  z-index: 3 !important;
 }
 
 .card-img-wrapper {
@@ -170,15 +202,15 @@
   .card-container {
     border-radius: 8px;
   }
-  .card-inner, .card-face {
+  .card-inner, .card-face, .card-back-pattern {
     border-radius: 8px;
   }
   .card-back-icon {
-    width: 26px;
-    height: 26px;
+    width: 24px;
+    height: 24px;
   }
   .question-mark {
-    font-size: 1rem;
+    font-size: 0.95rem;
   }
   .match-badge {
     width: 15px;
