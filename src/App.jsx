@@ -3,6 +3,7 @@ import './App.css';
 import SingleCard from './components/SingleCard';
 import StatsBar from './components/StatsBar';
 import VictoryModal from './components/VictoryModal';
+import ConfirmModal from './components/ConfirmModal';
 import { sound } from './utils/audio';
 import { translations } from './utils/translations';
 
@@ -87,6 +88,14 @@ function App() {
   const [peekUsed, setPeekUsed] = useState(() => savedGame?.peekUsed || false);
   const [isPeeking, setIsPeeking] = useState(false);
 
+  // Confirmation Modal state for restart / difficulty change
+  const [confirmDialog, setConfirmDialog] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: null,
+  });
+
   // Mute state
   const [muted, setMuted] = useState(() => {
     return localStorage.getItem('mind_match_muted') === 'true';
@@ -169,10 +178,46 @@ function App() {
     localStorage.setItem(CURRENT_GAME_KEY, JSON.stringify(freshState));
   };
 
-  const handleDifficultyChange = (newDiff) => {
+  // Check if current game is in progress
+  const isGameInProgress = () => {
+    return (moves > 0 || time > 0 || matches > 0) && !gameWon;
+  };
+
+  // Trigger Restart with confirmation if game in progress
+  const handleRestartRequest = () => {
+    if (isGameInProgress()) {
+      setConfirmDialog({
+        isOpen: true,
+        title: t.confirmRestartTitle,
+        message: t.confirmMessage,
+        onConfirm: () => {
+          setupGame(difficulty);
+          setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
+        },
+      });
+    } else {
+      setupGame(difficulty);
+    }
+  };
+
+  // Trigger Difficulty Change with confirmation if game in progress
+  const handleDifficultyChangeRequest = (newDiff) => {
     if (newDiff === difficulty) return;
-    setDifficulty(newDiff);
-    setupGame(newDiff);
+    if (isGameInProgress()) {
+      setConfirmDialog({
+        isOpen: true,
+        title: t.confirmDiffTitle,
+        message: t.confirmMessage,
+        onConfirm: () => {
+          setDifficulty(newDiff);
+          setupGame(newDiff);
+          setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
+        },
+      });
+    } else {
+      setDifficulty(newDiff);
+      setupGame(newDiff);
+    }
   };
 
   // If no saved game in localStorage, create initial deck
@@ -315,10 +360,10 @@ function App() {
           matches={matches}
           totalPairs={totalPairs}
           difficulty={difficulty}
-          setDifficulty={handleDifficultyChange}
+          setDifficulty={handleDifficultyChangeRequest}
           muted={muted}
           toggleSound={toggleSound}
-          onRestart={() => setupGame(difficulty)}
+          onRestart={handleRestartRequest}
           onPeek={handlePeek}
           peekUsed={peekUsed}
           isPeeking={isPeeking}
@@ -355,6 +400,18 @@ function App() {
         </div>
       </main>
 
+      {/* Confirmation Modal for Reset or Difficulty Change */}
+      <ConfirmModal
+        isOpen={confirmDialog.isOpen}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        confirmText={t.confirmBtn}
+        cancelText={t.cancelBtn}
+        onConfirm={confirmDialog.onConfirm}
+        onCancel={() => setConfirmDialog((prev) => ({ ...prev, isOpen: false }))}
+      />
+
+      {/* Victory Celebration Modal */}
       {gameWon && (
         <VictoryModal
           time={time}
@@ -367,7 +424,8 @@ function App() {
             setGameWon(false);
             const nextDiff =
               difficulty === 'easy' ? 'medium' : difficulty === 'medium' ? 'hard' : 'easy';
-            handleDifficultyChange(nextDiff);
+            setDifficulty(nextDiff);
+            setupGame(nextDiff);
           }}
           playerName={playerName}
           t={t}

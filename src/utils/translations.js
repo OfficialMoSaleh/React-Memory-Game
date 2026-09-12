@@ -29,6 +29,11 @@ export const translations = {
     player: "اللاعب",
     editName: "تعديل الاسم",
     saveName: "حفظ",
+    confirmRestartTitle: "تأكيد إعادة البدء",
+    confirmDiffTitle: "تأكيد تغيير المستوى",
+    confirmMessage: "هل أنت متأكد؟ سيتم مسح تقدمك الحالي في هذه الجولة والبدء من الصفر.",
+    confirmBtn: "نعم، ابدأ من جديد",
+    cancelBtn: "إلغاء ومتابعة اللعب",
   },
   en: {
     title: "Mind Match",
@@ -60,5 +65,10 @@ export const translations = {
     player: "Player",
     editName: "Edit Name",
     saveName: "Save",
+    confirmRestartTitle: "Confirm Restart",
+    confirmDiffTitle: "Change Difficulty",
+    confirmMessage: "Are you sure? Your current progress in this round will be reset.",
+    confirmBtn: "Yes, Start Over",
+    cancelBtn: "Cancel & Keep Playing",
   },
 };
