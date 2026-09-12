@@ -1,56 +1,74 @@
-.App {
-  max-width: 860px;
-  margin: 5px auto;
-}
-
-.head{
+.app-container {
+  height: 100vh;
+  height: 100dvh;
+  max-height: 100dvh;
+  width: 100vw;
+  position: relative;
+  overflow: hidden;
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
   align-items: center;
+  padding: 10px 14px;
+  box-sizing: border-box;
 }
 
-button {
-  background: none;
-  border: 2px solid #fff;
-  padding: 6px 12px;
-  border-radius: 4px;
-  color: #fff;
-  font-weight: bold;
-  cursor: pointer;
-  font-size: 1em;
+/* Ambient glows */
+.ambient-glow {
+  position: fixed;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(90px);
+  z-index: 0;
 }
 
-button:hover {
-  transition: all ease-in-out 0.3s;
-  background: green;
-  color: #fff;
+.glow-1 {
+  width: 380px;
+  height: 380px;
+  background: radial-gradient(circle, rgba(6, 182, 212, 0.12) 0%, transparent 70%);
+  top: -80px;
+  left: -80px;
 }
 
-.card___grid {
+.glow-2 {
+  width: 420px;
+  height: 420px;
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.12) 0%, transparent 70%);
+  bottom: -80px;
+  right: -80px;
+}
+
+.game-wrapper {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 920px;
+  height: 100%;
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Card Grid inside flex container: exactly fits available height without overflow */
+.card-grid {
+  flex: 1;
+  min-height: 0;
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  grid-gap: 30px;
-  margin-top: 10px;
+  gap: 10px;
+  width: 100%;
+  height: 100%;
+  max-height: 100%;
+  justify-items: center;
+  align-items: center;
+  overflow: hidden;
+  padding: 4px 0;
 }
 
-.no___turns {
-  color: rgb(255, 251, 0);
-  font-size: 1.5rem;
-}
-
-@media(max-width:991px){
-  .App{
-    max-width: 100%;
-    padding: 25px;
+@media (max-width: 600px) {
+  .app-container {
+    padding: 6px 8px;
   }
-}
-@media(max-width: 550px){
-  .App{
-    margin: auto;
-  }
-  .card___grid{
-  grid-template-columns: repeat(3, 1fr);
-  grid-gap: 20px;
-  margin-top: 10px;
+  .card-grid {
+    gap: 6px;
   }
 }

@@ -1,38 +1,191 @@
-.card {
-    position: relative;
+.card-container {
+  width: 100%;
+  height: 100%;
+  max-height: 100%;
+  max-width: 100%;
+  aspect-ratio: 1 / 1.15;
+  margin: auto;
+  perspective: 1000px;
+  cursor: pointer;
+  user-select: none;
+  border-radius: 12px;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+  outline: none;
+  display: flex;
 }
 
-.card img {
-    width: 100%;
-    object-fit: fill;
-    object-position: center;
-    display: block;
-    border: 2px solid #fff;
-    border-radius: 6px;
+.card-container:hover:not(.matched):not(.flipped) {
+  transform: translateY(-3px) scale(1.02);
 }
 
-.card:hover {
-    cursor: pointer;
-    box-shadow: 0px 0px 10px #05A4CC;
+.card-container:focus-visible {
+  box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.7);
 }
 
-/* front of card picture*/
-.card .front {
-    transform : rotateY(90deg);
-    transition: all 0.2s ease-in-out;
-    position: absolute;
-}
-.flipped .front {
-    transform : rotateY(0deg);
-    transition-delay: 0.2s;
-}
-
-.card .back {
-    transition: all 0.2s ease-in-out;
-    transition-delay: 0.2s;
+.card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  transition: transform 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-style: preserve-3d;
+  border-radius: 12px;
 }
 
-.flipped .back {
-    transform : rotateY(90deg);
-    transition-delay: 0s;
+/* 3D Flip state */
+.card-container.flipped .card-inner {
+  transform: rotateY(180deg);
+}
+
+/* Card faces */
+.card-face {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+/* Card Back */
+.card-back {
+  background: linear-gradient(135deg, rgba(26, 32, 53, 0.95), rgba(13, 17, 30, 0.98));
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 4px 16px -4px rgba(0, 0, 0, 0.6),
+              inset 0 1px 1px rgba(255, 255, 255, 0.15);
+}
+
+.card-container:hover:not(.matched):not(.flipped) .card-back {
+  border-color: rgba(56, 189, 248, 0.5);
+  box-shadow: 0 6px 20px -4px rgba(14, 165, 233, 0.35),
+              inset 0 1px 1px rgba(255, 255, 255, 0.25);
+}
+
+.card-back-pattern {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-image: 
+    radial-gradient(rgba(56, 189, 248, 0.15) 1px, transparent 0),
+    radial-gradient(rgba(139, 92, 246, 0.1) 1px, transparent 0);
+  background-size: 12px 12px;
+  background-position: 0 0, 6px 6px;
+}
+
+.card-back-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.18), rgba(139, 92, 246, 0.22));
+  border: 1.5px solid rgba(255, 255, 255, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.25);
+}
+
+.question-mark {
+  font-size: 1.25rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #38bdf8, #c084fc);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  line-height: 1;
+}
+
+/* Card Front */
+.card-front {
+  transform: rotateY(180deg);
+  background: linear-gradient(145deg, rgba(23, 28, 48, 0.95), rgba(15, 20, 35, 0.98));
+  border: 1.5px solid rgba(56, 189, 248, 0.4);
+  box-shadow: 0 4px 20px -4px rgba(0, 0, 0, 0.7),
+              inset 0 0 16px rgba(56, 189, 248, 0.08);
+  padding: 10%;
+}
+
+.card-img-wrapper {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-img-wrapper img {
+  max-width: 82%;
+  max-height: 82%;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5));
+}
+
+/* Matched Card */
+.card-container.matched {
+  cursor: default;
+}
+
+.card-container.matched .card-front {
+  border-color: #10b981;
+  box-shadow: 0 0 18px rgba(16, 185, 129, 0.4),
+              inset 0 0 18px rgba(16, 185, 129, 0.2);
+  animation: matchPulse 0.5s ease-out;
+}
+
+.match-badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.7);
+}
+
+.match-badge svg {
+  width: 12px;
+  height: 12px;
+}
+
+@keyframes matchPulse {
+  0% { transform: scale(0.96) rotateY(180deg); }
+  50% { transform: scale(1.05) rotateY(180deg); }
+  100% { transform: scale(1) rotateY(180deg); }
+}
+
+@media (max-width: 600px) {
+  .card-container {
+    border-radius: 8px;
+  }
+  .card-inner, .card-face {
+    border-radius: 8px;
+  }
+  .card-back-icon {
+    width: 26px;
+    height: 26px;
+  }
+  .question-mark {
+    font-size: 1rem;
+  }
+  .match-badge {
+    width: 15px;
+    height: 15px;
+  }
+  .match-badge svg {
+    width: 10px;
+    height: 10px;
+  }
 }

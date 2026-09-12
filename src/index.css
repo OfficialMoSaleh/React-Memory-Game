@@ -1,27 +1,38 @@
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800&display=swap');
 
-body {
-  font-family: 'Cairo', sans-serif;
-  margin: 0;
-  font-size: 1rem;
-  text-align: center;
-  color: #fff;
-  height: 100vh;
-  background: linear-gradient(to top right, #05090e, #29323b, #001a33, #162535, #063e77);
-  background-size: 600% 600%;
-  animation: gradient 10s ease infinite;
+:root {
+  --font-arabic: 'Cairo', sans-serif;
+  --font-english: 'Outfit', sans-serif;
+  --bg-primary: #070a14;
 }
 
-@keyframes gradient {
-  0% {
-    background-position: 0% 50%;
-  }
+*, *::before, *::after {
+  box-sizing: border-box;
+}
 
-  50% {
-    background-position: 100% 50%;
-  }
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden; /* Strict NO-SCROLL */
+  color: #f8fafc;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
 
-  100% {
-    background-position: 0% 50%;
-  }
+body {
+  background: 
+    radial-gradient(circle at 15% 20%, rgba(6, 182, 212, 0.12) 0%, transparent 40%),
+    radial-gradient(circle at 85% 25%, rgba(139, 92, 246, 0.15) 0%, transparent 45%),
+    radial-gradient(circle at 50% 80%, rgba(14, 165, 233, 0.1) 0%, transparent 50%),
+    linear-gradient(180deg, #090d1a 0%, #05070e 100%);
+  background-attachment: fixed;
+}
+
+#root {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
 }
